@@ -1,0 +1,10 @@
+# Ignorar el directorio logs y su contenido
+logs/
+postgresql-data/
+venv/
+pgadmin-data/
+# Ignorar cualquier archivo .env
+*.env
+
+# También puedes agregar comentarios precedidos por #
+
