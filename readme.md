@@ -33,6 +33,8 @@ make instalar
 
 --- 
 
+# Entorno de trabajo: 
+
 Cuando este todo instalado ya puedes iniciar los contenedores con:
 
 
@@ -49,8 +51,6 @@ Puertos:
 
 - Servidor Web: Esta ubicado en el puerto **:8000** [Click aquí](http://localhost:8000/)
 
-
----
 
 Para cerrar todos los contenedores usa:
 
