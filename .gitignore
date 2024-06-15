@@ -3,6 +3,7 @@ logs/
 postgresql-data/
 venv/
 pgadmin-data/
+__pycache__/
 # Ignorar cualquier archivo .env
 *.env
 
