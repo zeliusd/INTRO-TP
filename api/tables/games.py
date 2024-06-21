@@ -4,7 +4,7 @@ db = SQLAlchemy()
 
 
 class Games(db.Model):
-    __tablename__ = "games"
+    __tablename__ = "games_tb"
     appid = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), nullable=False)
     price = db.Column(db.Float, nullable=False)

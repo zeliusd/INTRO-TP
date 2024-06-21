@@ -1,10 +1,12 @@
 from flask import Flask, jsonify, request
 from tables.games import Games, db
+from flask_cors import CORS
 
 app = Flask(__name__)
 
+CORS(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = (
-    "postgresql+psycopg2://postgres:postgres@db:5432/games"
+    "postgresql+psycopg2://postgres:postgres@db:5432/games_db"
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 

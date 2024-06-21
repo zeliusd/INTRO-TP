@@ -6,8 +6,13 @@ WORKDIR /api/
 
 RUN pip3 install --upgrade pip
 
-COPY . .
+COPY . /api/.
 
 RUN pip3 install -r dependencias.txt
 
-CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0", "--debug"]
+RUN apt update
+
+RUN apt install -y unzip 
+
+ENTRYPOINT [ "/api/entrypoint.sh" ]
+
