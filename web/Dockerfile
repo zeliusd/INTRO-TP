@@ -2,7 +2,7 @@
 
 FROM python:3.8-slim-buster
 
-WORKDIR web/
+WORKDIR /web/
 
 COPY . .
 
