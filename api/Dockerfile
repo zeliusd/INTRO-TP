@@ -2,7 +2,7 @@
 
 FROM python:3.8-slim-buster
 
-WORKDIR api/
+WORKDIR /api/
 
 RUN pip3 install --upgrade pip
 
