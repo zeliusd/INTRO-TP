@@ -1,3 +1,11 @@
+query = "http://localhost:5000/games/filter?";
+const params = new URLSearchParams(window.location.search);
+const name = params.get("name");
+
+if (name != null) {
+  query += `name=${name}`;
+}
+
 function create_games_list(games) {
   const games_list = document.getElementById("games");
   for (const game of games) {
@@ -38,6 +46,6 @@ function request_error(error) {
   console.log(error);
 }
 
-fetch("http://localhost:5000/games").then(response).then(parse_data).catch(
+fetch(query).then(response).then(parse_data).catch(
   request_error,
 );
