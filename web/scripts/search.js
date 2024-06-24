@@ -1,10 +1,12 @@
-query = "http://localhost:5000/games/filter?";
+let query = "http://localhost:5000/games/filter?";
 const params = new URLSearchParams(window.location.search);
-const name = params.get("name");
+const game_name = params.get("name");
+const category = params.get("category");
+const developer = params.get("developer");
 
-if (name != null) {
-  query += `name=${name}`;
-}
+query += game_name ? `name=${game_name}&` : "";
+query += category ? `category=${category}&` : "";
+query += developer ? `developer=${developer}&` : "";
 
 function create_games_list(games) {
   const games_list = document.getElementById("games");

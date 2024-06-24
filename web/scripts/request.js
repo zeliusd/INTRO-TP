@@ -25,6 +25,13 @@ function create_games_list(games) {
   }
 }
 
+function carousel(games) {
+  for (i = 1; i <= 3; i++) {
+    const image = document.getElementById(`image_${i}`);
+    image.setAttribute("src", games[i + 55].image);
+  }
+}
+
 function response(response) {
   console.log(response);
   return response.json();
@@ -32,6 +39,7 @@ function response(response) {
 
 function parse_data(games) {
   create_games_list(games);
+  carousel(games);
 }
 
 function request_error(error) {
