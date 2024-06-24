@@ -9,7 +9,7 @@ function create_games_list(games) {
 
     const card = document.createElement("a");
     card.setAttribute("class", "card text-decoration-none");
-
+    card.setAttribute("href", `/games?id=${game.id}`);
     const img = document.createElement("img");
     img.setAttribute("class", "card-img-top");
     img.setAttribute("src", game.image);
