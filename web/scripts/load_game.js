@@ -5,10 +5,11 @@ function load_game(game) {
   const title = document.getElementById("title");
   const developer = document.getElementById("developer");
   const image = document.getElementById("image");
+  const about = document.getElementById("about");
   image.setAttribute("src", game.image);
-  console.log(game.image);
   developer.innerHTML = game.developer;
   title.innerHTML = game.name;
+  about.innerHTML = game.about;
 }
 
 function response(response) {

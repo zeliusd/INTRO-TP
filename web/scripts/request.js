@@ -28,7 +28,9 @@ function create_games_list(games) {
 function carousel(games) {
   for (i = 1; i <= 3; i++) {
     const image = document.getElementById(`image_${i}`);
+    const a_link = document.getElementById(`image_link_${i}`);
     image.setAttribute("src", games[i + 55].image);
+    a_link.setAttribute("href", `/games?id=${games[i + 55].id}`);
   }
 }
 
