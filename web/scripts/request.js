@@ -29,8 +29,8 @@ function carousel(games) {
   for (i = 1; i <= 3; i++) {
     const image = document.getElementById(`image_${i}`);
     const a_link = document.getElementById(`image_link_${i}`);
-    image.setAttribute("src", games[i + 55].image);
-    a_link.setAttribute("href", `/games?id=${games[i + 55].id}`);
+    image.setAttribute("src", games[i + 8].image);
+    a_link.setAttribute("href", `/games?id=${games[i + 8].id}`);
   }
 }
 
@@ -48,6 +48,7 @@ function request_error(error) {
   console.log(error);
 }
 
-fetch("http://localhost:5000/games").then(response).then(parse_data).catch(
-  request_error,
-);
+fetch("http://localhost:5000/games?limit=40").then(response).then(parse_data)
+  .catch(
+    request_error,
+  );
