@@ -18,8 +18,8 @@ function create_games_list(games) {
     );
 
     const card = document.createElement("a");
+    card.setAttribute("href", `/games?id=${game.id}`);
     card.setAttribute("class", "card text-decoration-none");
-
     const img = document.createElement("img");
     img.setAttribute("class", "card-img-top");
     img.setAttribute("src", game.image);
