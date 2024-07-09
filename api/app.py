@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from tables.games import Games, db
+from tables.games import Games, db, Reviews, Users
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -58,8 +58,13 @@ def hello():
 
 @app.route("/games", methods=["GET"])
 def games():
+    limits = request.args.get("limit")
+    data = None
+    if limits:
+        data = games_data(Games.query.order_by(Games.appid).limit(int(limits)).all())
+    else:
+        data = games_data(Games.query.all())
 
-    data = games_data(Games.query.all())
     if not data:
         return jsonify({"message": "No hay juegos disponibles"}), 404
     return jsonify(data)
