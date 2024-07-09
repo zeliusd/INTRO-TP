@@ -19,7 +19,7 @@ class Users(db.Model):
     username = db.Column(db.String(255), nullable=False)
     cant_reviews = db.Column(db.Integer, nullable=True)
 
-class Review(db.Model):
+class Reviews(db.Model):
     __tablename__ = "review_tb"
     review_id = db.Column(db.Integer, primary_key=True)
     comment = db.Column(db.String(1000), nullable=False)
