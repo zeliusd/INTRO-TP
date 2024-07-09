@@ -51,3 +51,9 @@ function request_error(error) {
 fetch(query).then(response).then(parse_data).catch(
   request_error,
 );
+
+document.getElementById('searchSelect').addEventListener('change', function () {
+  let searchInput = document.getElementById('searchInput');
+  searchInput.name = this.value;
+});
+
