@@ -25,5 +25,5 @@ class Reviews(db.Model):
     comment = db.Column(db.String(1000), nullable=False)
     score = db.Column(db.Integer, nullable=False)
     date = db.Column(db.Date, nullable=False)
-    appid = db.Column(db.ForeignKey('games_tb.appid') ,nullable=False)
-    user_id = db.Column(db.ForeignKey('users_tb.user_id') ,nullable=False)
+    appid = db.Column(db.Integer, db.ForeignKey('games_tb.appid') ,nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users_tb.user_id') ,nullable=False)
