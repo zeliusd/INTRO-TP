@@ -14,8 +14,7 @@ except Exception as e:
 os.system("unzip db/games_data.zip")
 data_frame = pandas.read_csv("games.csv")
 
-
-# df_100 = df.head(100)
+data_frame.columns = data_frame.columns.str.replace(" ", "_").str.lower()
 
 data_frame.to_sql("games_tb", engine, if_exists="replace", index=False)
 
