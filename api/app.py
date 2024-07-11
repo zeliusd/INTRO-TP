@@ -96,7 +96,7 @@ def filter_games():
 
 
 # End point para todos los usuarios
-@app.route("/users/>", methods=["GET"])
+@app.route("/users/", methods=["GET"])
 def users():
     users = Users.query.all()
     users_data = []
@@ -114,7 +114,7 @@ def users():
 
 
 # End point para crear un nuevo usuario
-@app.route("/users", methods=["POST"])
+@app.route("/users/", methods=["POST"])
 def new_user():
     try:
         data = request.json
@@ -134,7 +134,7 @@ def new_user():
 
 
 # End point para un usuario
-@app.route("/users/<user_id>", methods=["GET"])
+@app.route("/users/<int:user_id>", methods=["GET"])
 def user(user_id):
     user = Users.query.get(user_id)
     if not user:
