@@ -98,6 +98,54 @@ def filter_games():
     return jsonify(data)
 
 
+#End point para todos los usuarios
+@app.route("/users/", methods=["GET"])
+def users(user_id):
+    try:
+        users = Users.query.all()
+        users_data = []
+        for user in users:
+            user_data = {
+                'id': user.user_id,
+                'username': user.username,
+                'cant_reviews': user.username
+            }
+            users_data.append(user_data)
+        return jsonify(users_data)
+    except:
+        return jsonify({"message": "No hay usuarios disponibles"})
+
+
+#End point para crear un nuevo usuario
+@app.route("/users", methods=["POST"])
+def new_user():
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        cant_reviews = data.get('cant_reviews')
+        new_user = Users(username=username, cant_reviews=cant_reviews)
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({"user": {'user_id': new_user.user_id, 'username': new_user.username}})
+    except:
+        return jsonify({"message": "Error al crear el usuario"})
+
+
+#End point para un usuario
+@app.route("/users/<user_id>", methods=["GET"])
+def user(user_id):
+    try:
+        user = Users.query.get(user_id)
+        user_data = {
+            'id': user.user_id,
+            'username': user.username,
+            'cant_reviews': user.username
+        }
+        return jsonify(user_data)
+    except:
+        return jsonify({"message": "No hay usuario disponible"})
+
+
 if __name__ == "__main__":
 
     with app.app_context():
