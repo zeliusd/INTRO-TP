@@ -121,9 +121,10 @@ def new_user():
         if not data:
             return jsonify({"message": "Bad request"}), 400
         username = data.get("username")
-        if not username:
+        user_reviews = data.get("user_reviews")
+        if not username or not user_reviews:
             return jsonify({"message": "Bad request"}), 400
-        new_user = Users(username=username)
+        new_user = Users(username=username, user_reviews=user_reviews)
         db.session.add(new_user)
         db.session.commit()
         return jsonify(
