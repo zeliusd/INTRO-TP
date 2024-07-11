@@ -12,13 +12,12 @@ except Exception as e:
     pass
 
 os.system("unzip db/games_data.zip")
-df = pandas.read_csv("games.csv")
+data_frame = pandas.read_csv("games.csv")
 
-df.columns = df.columns.str.replace(" ", "_").str.lower()
 
-df_100 = df.head(100)
+# df_100 = df.head(100)
 
-df_100.to_sql("games_tb", engine, if_exists="replace", index=False)
+data_frame.to_sql("games_tb", engine, if_exists="replace", index=False)
 
 with engine.connect() as connection:
     connection.execute(text("ALTER TABLE games_tb ADD PRIMARY KEY (appid);"))
