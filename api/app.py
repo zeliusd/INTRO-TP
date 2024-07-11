@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from tables.games import Games, db
+from tables.tables import db, Reviews, Users, Games
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -10,11 +10,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-db.init_app(app)
-
 
 def games_data(query_results):
-
     if not query_results:
         return None
 
@@ -98,9 +95,62 @@ def filter_games():
     return jsonify(data)
 
 
-if __name__ == "__main__":
+# End point para todos los usuarios
+@app.route("/users/>", methods=["GET"])
+def users():
+    users = Users.query.all()
+    users_data = []
+    for user in users:
+        user_data = {
+            "id": user.user_id,
+            "username": user.username,
+            "cant_reviews": user.username,
+        }
+        users_data.append(user_data)
+    if not users:
+        return jsonify({"message": "No hay usuarios disponibles"})
 
-    with app.app_context():
-        db.create_all()
+    return jsonify(users_data)
 
-    app.run(debug=True)
+
+# End point para crear un nuevo usuario
+@app.route("/users", methods=["POST"])
+def new_user():
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"message": "Bad request"}), 400
+        username = data.get("username")
+        if not username:
+            return jsonify({"message": "Bad request"}), 400
+        new_user = Users(username=username)
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify(
+            {"user": {"user_id": new_user.user_id, "username": new_user.username}}
+        )
+    except Exception as e:
+        return jsonify({"message": f"Error al crear el usuario {e}"})
+
+
+# End point para un usuario
+@app.route("/users/<user_id>", methods=["GET"])
+def user(user_id):
+    user = Users.query.get(user_id)
+    if not user:
+        return jsonify({"message": "No hay usuario disponible"})
+
+    user_data = {
+        "id": user.user_id,
+        "username": user.username,
+        "cant_reviews": user.username,
+    }
+    return jsonify(user_data)
+
+
+db.init_app(app)
+with app.app_context():
+    db.reflect()
+    db.Model.metadata.create_all(db.engine)
+    db.create_all()
+app.run(debug=True)
