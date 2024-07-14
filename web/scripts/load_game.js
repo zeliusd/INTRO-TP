@@ -20,8 +20,8 @@ function response(response) {
 function parse_data(game) {
   load_game(game);
 }
-
 function request_error(error) {
+  window.location.href = "/";
   console.log(error);
 }
 
