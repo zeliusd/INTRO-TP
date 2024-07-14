@@ -6,6 +6,8 @@ engine = create_engine("postgresql+psycopg2://postgres:postgres@db:5432/games_db
 try:
     with engine.connect() as connection:
         connection.execute(text("DROP TABLE games_tb CASCADE;"))
+        connection.execute(text("DROP TABLE users_tb CASCADE;"))
+        connection.execute(text("DROP TABLE review_tb CASCADE; "))
         connection.commit()
 except Exception as e:
     print(e)

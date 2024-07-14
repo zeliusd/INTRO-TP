@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, request
+from sqlalchemy.util import NoneType
 from tables.tables import db, Reviews, Users, Games
 from flask_cors import CORS
+from sqlalchemy import event
 
 app = Flask(__name__)
 
@@ -9,6 +11,12 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
     "postgresql+psycopg2://postgres:postgres@db:5432/games_db"
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db.init_app(app)
+with app.app_context():
+    db.reflect()
+    db.Model.metadata.create_all(db.engine)
+    db.create_all()
 
 
 def games_data(query_results):
@@ -95,45 +103,6 @@ def filter_games():
     return jsonify(data)
 
 
-# End point para todos los usuarios
-@app.route("/users/", methods=["GET"])
-def users():
-    users = Users.query.all()
-    users_data = []
-    for user in users:
-        user_data = {
-            "id": user.user_id,
-            "username": user.username,
-            "cant_reviews": user.username,
-        }
-        users_data.append(user_data)
-    if not users:
-        return jsonify({"message": "No hay usuarios disponibles"})
-
-    return jsonify(users_data)
-
-
-# End point para crear un nuevo usuario
-@app.route("/users/", methods=["POST"])
-def new_user():
-    try:
-        data = request.json
-        if not data:
-            return jsonify({"message": "Bad request"}), 400
-        username = data.get("username")
-        if not username:
-            return jsonify({"message": "Bad request"}), 400
-        new_user = Users(username=username)
-        db.session.add(new_user)
-        db.session.commit()
-        return jsonify(
-            {"user": {"user_id": new_user.user_id, "username": new_user.username}}
-        )
-    except Exception as e:
-        return jsonify({"message": f"Error al crear el usuario {e}"})
-
-
-# End point para un usuario
 @app.route("/users/<int:user_id>", methods=["GET"])
 def user(user_id):
     user = Users.query.get(user_id)
@@ -143,14 +112,226 @@ def user(user_id):
     user_data = {
         "id": user.user_id,
         "username": user.username,
-        "cant_reviews": user.username,
+        "cant_reviews": user.cant_reviews,
     }
     return jsonify(user_data)
 
 
-db.init_app(app)
-with app.app_context():
-    db.reflect()
-    db.Model.metadata.create_all(db.engine)
-    db.create_all()
+@app.route("/users", methods=["GET"])
+def users():
+    username = request.args.get("username")
+    users_data = []
+    query = Users.query.filter_by(username=username).first()
+    if not query:
+        query = Users.query.all()
+        if not query:
+            return jsonify({"message": "No hay usuarios disponibles"})
+
+        for user in query:
+            user_data = {
+                "id": user.user_id,
+                "username": user.username,
+                "cant_reviews": user.cant_reviews,
+            }
+            users_data.append(user_data)
+    else:
+        users_data = [
+            {
+                "id": query.user_id,
+                "username": query.username,
+                "cant_reviews": query.cant_reviews,
+            }
+        ]
+    return jsonify(users_data)
+
+
+@app.route("/users/<int:user_id>", methods=["PUT"])
+def update_user(user_id):
+    data = request.get_json()
+    user = Users.query.get(user_id)
+
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    try:
+        if "username" in data:
+            user.username = data["username"]
+        if "cant_reviews" in data:
+            user.cant_reviews = data["cant_reviews"]
+        db.session.commit()
+        return jsonify({"message": "User updated successfully"}), 200
+    except Exception as e:
+        return jsonify({"message": f"Invalid data: {e}"}), 400
+
+
+def add_user(username):
+    try:
+        new_user = Users(username=username)
+        db.session.add(new_user)
+        db.session.commit()
+        return {"message": "User added successfully"}, new_user.user_id
+    except Exception as e:
+        print(e)
+        return None, e
+
+
+@app.route("/users", methods=["POST"])
+def new_user():
+    data = request.get_json()
+    username = data["username"]
+    if not username:
+        return jsonify({"message": "Bad Request"}), 400
+
+    user, _ = add_user(username)
+    if not user:
+        return jsonify({"message": "Internal error"}), 500
+
+    return jsonify(user), 200
+
+
+def load_reviews(query):
+    if not query:
+        return None
+    reviews_data = [
+        {
+            "review_id": reviews.review_id,
+            "comment": reviews.comment,
+            "score": reviews.score,
+            "date": reviews.date,
+            "appid": reviews.appid,
+            "username": username,
+            "user_id": reviews.user_id,
+        }
+        for reviews, username in query
+    ]
+    return reviews_data
+
+
+@app.route("/reviews", methods=["POST"])
+def add_review():
+    data = request.get_json()
+    comment = data["comment"]
+    score = data["score"]
+    appid = data["appid"]
+    username = data["username"]
+    if not comment or not score or not appid or not username:
+        return jsonify({"message:": "Bad request"})
+
+    user = Users.query.filter_by(username=username).first()
+
+    if not user:
+        _, id = add_user(username)
+        user_id = id
+    else:
+        user_id = user.user_id
+
+    if not user_id:
+        return jsonify({"message:": "Internal error"})
+    try:
+        new_review = Reviews(comment=comment, score=score, appid=appid, user_id=user_id)
+        db.session.add(new_review)
+        db.session.flush()
+        user = Users.query.get(new_review.user_id)
+        if user:
+            user.cant_reviews = (user.cant_reviews or 0) + 1
+
+        db.session.commit()
+        return jsonify({"message:": "Review added successfully"}), 201
+    except Exception as e:
+        return jsonify({"message:" f"Internal error {e}"})
+
+
+@app.route("/users/<int:user_id>", methods=["DELETE"])
+def delete_user(user_id):
+    try:
+        user = Users.query.get(user_id)
+        if user is None:
+            return jsonify({"message": "User not found"}), 404
+
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify(
+            {"message": "User and associated reviews deleted successfully"}
+        ), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": f"An error occurred: {str(e)}"}), 500
+
+
+@app.route("/reviews/<int:review_id>", methods=["PUT"])
+def edit_review(review_id):
+    data = request.get_json()
+    comment = data["comment"]
+    score = data["score"]
+    if not comment or not score:
+        return jsonify({"message": "Bad request"}), 400
+    try:
+        review = Reviews.query.get(review_id)
+        if review is None:
+            return jsonify({"message": "Review not found"}), 404
+        review.comment = comment
+        review.score = score
+        db.session.commit()
+        return jsonify({"message": "Review updated successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": f"An error occurred: {str(e)}"}), 500
+
+
+@app.route("/reviews/<int:review_id>", methods=["GET"])
+def review(review_id):
+    review = Reviews.query.get(review_id)
+    if not review:
+        return jsonify({"message": "Review not found"}), 404
+    review_data = {
+        "review_id": review.review_id,
+        "comment": review.comment,
+        "score": review.score,
+        "date": review.date,
+        "appid": review.appid,
+        "user_id": review.user_id,
+    }
+    return jsonify(review_data)
+
+
+@app.route("/reviews/<int:review_id>", methods=["DELETE"])
+def delete_review(review_id):
+    try:
+        review = Reviews.query.get(review_id)
+        if review is None:
+            return jsonify({"message": "Review not found"}), 404
+
+        db.session.delete(review)
+        user = Users.query.get(review.user_id)
+        if user:
+            user.cant_reviews = (user.cant_reviews or 0) - 1
+
+        db.session.commit()
+        return jsonify({"message": "Review deleted successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": f"An error occurred: {str(e)}"}), 500
+
+
+@app.route("/users/<int:user_id>/reviews", methods=["GET"])
+def user_reviews(user_id):
+    reviews = load_reviews(Reviews.query.filter_by(user_id=user_id).all())
+    if not reviews:
+        return jsonify({"message:": "Bad request"})
+    return jsonify(reviews)
+
+
+@app.route("/games/<int:appid>/reviews", methods=["GET"])
+def game_reviews(appid):
+    reviews = load_reviews(
+        db.session.query(Reviews, Users.username)
+        .filter_by(appid=appid)
+        .join(Users, Reviews.user_id == Users.user_id)
+        .all()
+    )
+    if not reviews:
+        return jsonify({"message:": "Bad request"})
+    return jsonify(reviews)
+
+
 app.run(debug=True)
