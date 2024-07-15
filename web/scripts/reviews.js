@@ -89,7 +89,6 @@ function load_reviews(reviews) {
 
 
 function handle_response(response) {
-  console.log(response)
   window.location.href = '/games/?id=' + game_id2;
 }
 function response(response) {
@@ -102,12 +101,17 @@ function parse_data(reviews) {
 
 function request_error(error) {
   console.log(error);
+
 }
 
 
 function delete_response(data) {
-  alert("Review removed successfully")
-  window.location.href = "/games/?id=" + game_id2;
+  if (data.message === "Review deleted successfully") {
+    alert(data.message)
+    window.location.href = "/games/?id=" + game_id2;
+
+  }
+  console.log(data);
 }
 function remove_review(event) {
   event.preventDefault();
@@ -125,6 +129,11 @@ function create_review(event) {
     appid: game_id2,
     score: formData.get('score'),
   };
+
+  if(data.score > 5 || data.score < 0) {
+    alert('Score must be between 0 and 5');
+    return;
+  }
   fetch(`http://localhost:5000/reviews`, {
     method: 'POST',
     headers: {

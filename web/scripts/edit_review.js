@@ -6,7 +6,9 @@ const review_id = params2.get('id_review');
 
 
 function handle_response(response) {
-  window.location.href = `/games/?id=${game_id2}`
+  if (response.message == "Review updated successfully")
+    window.location.href = `/games/?id=${game_id2}`
+  alert("Internal Error");
 }
 function response(response) {
   return response.json();
@@ -26,7 +28,6 @@ function parse_data(reviews) {
 
 function request_error(error) {
   console.log(error);
-  window.location.href = '/games/?id=' + game_id2;
 }
 
 fetch(`http://localhost:5000/reviews/${review_id}`).then(response).then(parse_data).catch(request_error);
@@ -39,6 +40,10 @@ function edit_review(event) {
   const comment = formData.get("comment");
   const score = formData.get("score");
 
+  if (score < 0 || score > 5) {
+    alert("Score must be between 0 and 5");
+    return;
+  }
   fetch(`http://localhost:5000/reviews/${review_id}`, {
     method: 'PUT',
     headers: {

@@ -21,7 +21,7 @@ class Users(db.Model):
     user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(255), nullable=False, unique=True)
     cant_reviews = db.Column(db.Integer, nullable=True, default=0)
-    reviews = db.relationship("Reviews", backref="user", lazy=True)
+    reviews = db.relationship("Reviews", backref="user", cascade="all, delete-orphan")
 
 
 class Reviews(db.Model):
