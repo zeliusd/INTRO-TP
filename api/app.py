@@ -1,8 +1,8 @@
 from flask import Flask, jsonify, request
-from sqlalchemy.util import NoneType
+import sqlalchemy
 from tables.tables import db, Reviews, Users, Games
 from flask_cors import CORS
-from sqlalchemy import event
+from sqlalchemy import func
 
 app = Flask(__name__)
 
@@ -125,7 +125,7 @@ def users():
     if not query:
         query = Users.query.all()
         if not query:
-            return jsonify({"message": "No hay usuarios disponibles"})
+            return jsonify({"message": "No hay usuarios disponibles"}), 404
 
         for user in query:
             user_data = {
@@ -142,7 +142,7 @@ def users():
                 "cant_reviews": query.cant_reviews,
             }
         ]
-    return jsonify(users_data)
+    return jsonify(users_data), 202
 
 
 @app.route("/users/<int:user_id>", methods=["PUT"])
@@ -332,6 +332,45 @@ def game_reviews(appid):
     if not reviews:
         return jsonify({"message:": "Bad request"})
     return jsonify(reviews)
+
+
+@app.route("/games/top-rated", methods=["GET"])
+def top_rated_games():
+    limit = request.args.get("limit", default=10, type=int)
+    top_games = (
+        db.session.query(
+            Games.appid,
+            Games.name,
+            Games.price,
+            Games.header_image,
+            Games.developers,
+            sqlalchemy.cast(func.avg(Reviews.score), sqlalchemy.Integer).label(
+                "average_score"
+            ),
+        )
+        .join(Reviews, Reviews.appid == Games.appid)
+        .group_by(Games.appid)
+        .order_by(func.avg(Reviews.score).desc())
+        .limit(limit)
+        .all()
+    )
+
+    games_data = [
+        {
+            "id": game.appid,
+            "name": game.name,
+            "price": game.price,
+            "image": game.header_image,
+            "developer": game.developers,
+            "average_score": game.average_score,
+        }
+        for game in top_games
+    ]
+
+    if not games_data:
+        return jsonify({"message": "Not found"}), 404
+
+    return jsonify(games_data)
 
 
 app.run(debug=True)
